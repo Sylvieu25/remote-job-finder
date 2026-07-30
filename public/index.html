@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remote Job Finder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Remote Job Finder</h1>
+    <p>Find real remote jobs, powered by <a href="https://remotive.com" target="_blank">Remotive</a></p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <input type="text" id="searchInput" placeholder="Search by title or keyword...">
+
+      <select id="categoryFilter">
+        <option value="">All Categories</option>
+      </select>
+
+      <select id="sortSelect">
+        <option value="date-desc">Newest first</option>
+        <option value="date-asc">Oldest first</option>
+        <option value="company-asc">Company (A-Z)</option>
+      </select>
+    </section>
+
+    <section id="status"></section>
+
+    <section id="jobList"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

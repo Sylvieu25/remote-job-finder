@@ -2,9 +2,8 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.get('/', (req, res) => {
-  res.send('Remote Job Finder server is running (v2).');
-});
+// Serve static frontend files (index.html, style.css, app.js) from /public
+app.use(express.static('public'));
 
 // New endpoint: fetches live remote job listings from Remotive
 app.get('/api/jobs', async (req, res) => {
