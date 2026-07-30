@@ -1,8 +1,10 @@
 const statusEl = document.getElementById('status');
 const jobListEl = document.getElementById('jobList');
 const categoryFilterEl = document.getElementById('categoryFilter');
+const searchInputEl = document.getElementById('searchInput');
+const sortSelectEl = document.getElementById('sortSelect');
 
-let allJobs = []; // we'll keep the full dataset here so search/filter/sort can work on it later
+let allJobs = []; // full dataset, never mutated — search/filter/sort always read from this
 
 async function loadJobs() {
   statusEl.textContent = 'Loading jobs...';
@@ -23,9 +25,8 @@ async function loadJobs() {
       return;
     }
 
-    statusEl.textContent = `Showing ${allJobs.length} jobs`;
     populateCategoryFilter(allJobs);
-    renderJobs(allJobs);
+    applyFiltersAndRender();
 
   } catch (err) {
     console.error('Error loading jobs:', err);
@@ -42,6 +43,50 @@ function populateCategoryFilter(jobs) {
     option.textContent = cat;
     categoryFilterEl.appendChild(option);
   });
+}
+
+// The core function: reads the current state of search + filter + sort
+// controls together, and produces one final result set.
+function applyFiltersAndRender() {
+  const searchTerm = searchInputEl.value.trim().toLowerCase();
+  const selectedCategory = categoryFilterEl.value;
+  const sortValue = sortSelectEl.value;
+
+  let result = allJobs;
+
+  // Search: match against job title
+  if (searchTerm) {
+    result = result.filter(job =>
+      job.title.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  // Filter: match selected category
+  if (selectedCategory) {
+    result = result.filter(job => job.category === selectedCategory);
+  }
+
+  // Sort
+  result = [...result].sort((a, b) => {
+    if (sortValue === 'date-desc') {
+      return new Date(b.publication_date) - new Date(a.publication_date);
+    }
+    if (sortValue === 'date-asc') {
+      return new Date(a.publication_date) - new Date(b.publication_date);
+    }
+    if (sortValue === 'company-asc') {
+      return a.company_name.localeCompare(b.company_name);
+    }
+    return 0;
+  });
+
+  if (result.length === 0) {
+    statusEl.textContent = 'No jobs match your search.';
+  } else {
+    statusEl.textContent = `Showing ${result.length} of ${allJobs.length} jobs`;
+  }
+
+  renderJobs(result);
 }
 
 function renderJobs(jobs) {
@@ -62,5 +107,10 @@ function renderJobs(jobs) {
     jobListEl.appendChild(card);
   });
 }
+
+// Wire up controls — every change re-runs the combined filter/sort logic
+searchInputEl.addEventListener('input', applyFiltersAndRender);
+categoryFilterEl.addEventListener('change', applyFiltersAndRender);
+sortSelectEl.addEventListener('change', applyFiltersAndRender);
 
 loadJobs();
