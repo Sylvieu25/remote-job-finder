@@ -135,7 +135,7 @@ HAProxy performs health checks (`check`) on each backend server. If a server goe
 
 ### Accessing the Deployed App
 
-- Directly via load balancer: `http://<lb01-ip>:8080`
+- Directly via load balancer: `http://3.83.160.39:8080`
 
 ## Challenges & Solutions
 
