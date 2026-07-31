@@ -10,12 +10,12 @@
 
   <header>
     <h1>Remote Job Finder</h1>
-    <p>Find real remote jobs, powered by <a href="https://remotive.com" target="_blank">Remotive</a></p>
+    <p>Search, filter, and sort live remote job listings</p>
   </header>
 
   <main>
     <section class="controls">
-      <input type="text" id="searchInput" placeholder="Search by title or keyword...">
+      <input type="text" id="searchInput" placeholder="Search by title, company, or location...">
 
       <select id="categoryFilter">
         <option value="">All Categories</option>
@@ -32,6 +32,18 @@
 
     <section id="jobList"></section>
   </main>
+
+  <footer>
+    <p>Powered by <a href="https://remotive.com" target="_blank">Remotive</a></p>
+  </footer>
+
+  <!-- Job details modal -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <button id="modalClose" class="modal-close" aria-label="Close">&times;</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

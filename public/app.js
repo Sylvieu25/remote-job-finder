@@ -3,8 +3,11 @@ const jobListEl = document.getElementById('jobList');
 const categoryFilterEl = document.getElementById('categoryFilter');
 const searchInputEl = document.getElementById('searchInput');
 const sortSelectEl = document.getElementById('sortSelect');
+const modalOverlayEl = document.getElementById('modalOverlay');
+const modalContentEl = document.getElementById('modalContent');
+const modalCloseEl = document.getElementById('modalClose');
 
-let allJobs = []; // full dataset, never mutated — search/filter/sort always read from this
+let allJobs = []; // full dataset, never mutated
 
 async function loadJobs() {
   statusEl.textContent = 'Loading jobs...';
@@ -45,8 +48,6 @@ function populateCategoryFilter(jobs) {
   });
 }
 
-// The core function: reads the current state of search + filter + sort
-// controls together, and produces one final result set.
 function applyFiltersAndRender() {
   const searchTerm = searchInputEl.value.trim().toLowerCase();
   const selectedCategory = categoryFilterEl.value;
@@ -54,19 +55,18 @@ function applyFiltersAndRender() {
 
   let result = allJobs;
 
-  // Search: match against job title
   if (searchTerm) {
     result = result.filter(job =>
-      job.title.toLowerCase().includes(searchTerm)
+      job.title.toLowerCase().includes(searchTerm) ||
+      job.candidate_required_location.toLowerCase().includes(searchTerm) ||
+      job.company_name.toLowerCase().includes(searchTerm)
     );
   }
 
-  // Filter: match selected category
   if (selectedCategory) {
     result = result.filter(job => job.category === selectedCategory);
   }
 
-  // Sort
   result = [...result].sort((a, b) => {
     if (sortValue === 'date-desc') {
       return new Date(b.publication_date) - new Date(a.publication_date);
@@ -101,14 +101,46 @@ function renderJobs(jobs) {
       <p class="company">${job.company_name} — ${job.candidate_required_location}</p>
       <p class="category">${job.category}</p>
       <p class="date">Posted: ${new Date(job.publication_date).toLocaleDateString()}</p>
-      <a href="${job.url}" target="_blank" class="apply-btn">View & Apply</a>
+      <div class="card-actions">
+        <button class="details-btn" data-job-id="${job.id}">View Details</button>
+        <a href="${job.url}" target="_blank" class="apply-btn">Apply on Remotive</a>
+      </div>
     `;
+
+    card.querySelector('.details-btn').addEventListener('click', () => openModal(job));
 
     jobListEl.appendChild(card);
   });
 }
 
-// Wire up controls — every change re-runs the combined filter/sort logic
+function openModal(job) {
+  modalContentEl.innerHTML = `
+    <h2>${job.title}</h2>
+    <p class="modal-meta">
+      ${job.company_name} — ${job.candidate_required_location}<br>
+      ${job.category} · Posted: ${new Date(job.publication_date).toLocaleDateString()}
+    </p>
+    <div class="modal-description">${job.description}</div>
+    <a href="${job.url}" target="_blank" class="apply-btn">Apply on Remotive</a>
+  `;
+  modalOverlayEl.classList.remove('hidden');
+}
+
+function closeModal() {
+  modalOverlayEl.classList.add('hidden');
+  modalContentEl.innerHTML = '';
+}
+
+modalCloseEl.addEventListener('click', closeModal);
+
+modalOverlayEl.addEventListener('click', (e) => {
+  if (e.target === modalOverlayEl) closeModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
 searchInputEl.addEventListener('input', applyFiltersAndRender);
 categoryFilterEl.addEventListener('change', applyFiltersAndRender);
 sortSelectEl.addEventListener('change', applyFiltersAndRender);
