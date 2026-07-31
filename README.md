@@ -9,10 +9,11 @@ Most demo API projects (jokes, cat facts, weather) are novelties. This one solve
 ## Features
 
 - Live job listings fetched from the Remotive API
-- Real-time search by job title/keyword
+- Real-time search by job title, company, or location
 - Filter by job category
 - Sort by date posted (newest/oldest) or company name (A-Z)
 - Combined filtering — search, category, and sort all work together simultaneously
+- In-app job details modal (view full description without leaving the page)
 - Graceful error handling for API downtime, network failures, and empty search results
 
 ## Tech Stack
@@ -66,7 +67,7 @@ Even though the Remotive API doesn't require an API key, this project is structu
 
 ## Deployment
 
-This application is deployed on two web servers (Web01, Web02) behind an HAProxy load balancer (Lb01).
+This application is deployed behind an HAProxy load balancer (Lb01), configured to distribute traffic across two web servers (Web01, Web02).
 
 ### Web Server Setup (Web01 & Web02)
 
@@ -114,6 +115,7 @@ The app runs on port `5000` on each web server.
 
 HAProxy is configured to distribute traffic between Web01 and Web02 using round-robin, on port `8080`:
 
+```text
 frontend job_finder_front
 bind *:8080
 default_backend job_finder_back
@@ -122,6 +124,7 @@ backend job_finder_back
 balance roundrobin
 server 6996-web-01 <web01-ip>:5000 check
 server 6996-web-02 <web02-ip>:5000 check
+```
 
 
 This block was added to `/etc/haproxy/haproxy.cfg` and applied with:
@@ -135,14 +138,16 @@ HAProxy performs health checks (`check`) on each backend server. If a server goe
 
 ### Accessing the Deployed App
 
-- Directly via load balancer: `http://3.83.160.39:8080`
+- **Via load balancer (recommended):** http://3.83.160.39:8080
+- **Directly on Web02:** http://100.27.23.115:5000
+- **Web01:** Not currently accessible — the SSH key was never authorized on this server, despite working correctly on Web02 and Lb01 (same key). This is a server-side provisioning gap, not a key or setup issue (see Challenges below). The load balancer is fully configured to include Web01 and will automatically route traffic to it once access is restored — no config changes needed.
 
 ## Challenges & Solutions
 
-- **SSH access to Web01 was unavailable** — the provided SSH key was not authorized on Web01's `authorized_keys`, despite working correctly on Web02 and Lb01 (verified via `ssh -v` showing the key was offered but rejected). This appears to be a server-side provisioning gap rather than a key issue. Deployment was completed on Web02 and the load balancer was configured to include Web01 in its backend pool — HAProxy's health checks will automatically route traffic to it as soon as it becomes reachable, with no config changes required.
+- **SSH access to Web01 was unavailable** — the provided SSH key was not authorized on Web01's `authorized_keys`, despite working correctly on Web02 and Lb01 (verified via `ssh -v` showing the key was offered but rejected). This appears to be a server-side provisioning gap rather than a key issue. Deployment was completed on Web02, and the load balancer was configured to include Web01 in its backend pool — HAProxy's health checks will automatically route traffic to it as soon as it becomes reachable, with no config changes required.
 - **No text editor (`nano`/`vim`) available on the minimal Ubuntu server images** — worked around this using `heredoc` syntax (`cat << 'EOF'`) piped through `tee -a` for files requiring `sudo`, avoiding the need to install an editor just for a couple of small config files.
 - **Existing HAProxy configuration on Lb01** — Lb01 already had a load balancer configuration from a previous project (serving a different app on ports 80/443 with SSL). Rather than overwrite it, a separate `frontend`/`backend` block was added on port `8080`, keeping this project fully isolated from the prior one.
 
 ## Demo Video
 
-*[Link to be added once recorded]*
+[Watch the demo video](https://youtu.be/YJMty-GVlDQ)
